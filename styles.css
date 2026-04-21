@@ -908,3 +908,26 @@ aside {
   z-index: 500;
   pointer-events: none;
 }
+
+/* ══════════════════════════════════════
+   PARK INFO PANEL (nearest open space)
+══════════════════════════════════════ */
+.park-info {
+  position: absolute;
+  top: 54px;
+  right: 14px;
+  width: 230px;
+  background: var(--surface);
+  border: 1.5px solid rgba(0,184,122,0.3);
+  border-radius: var(--radius-lg);
+  padding: 14px;
+  box-shadow: var(--shadow-lg);
+  z-index: 500;
+  display: none;
+}
+
+.park-info.visible { display: block; }
+
+/* Push cascade-info down when park-info is visible */
+.park-info ~ .cascade-info,
+.cascade-info { top: 54px; }

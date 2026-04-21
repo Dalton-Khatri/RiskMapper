@@ -88,6 +88,7 @@
     <div class="sidebar-actions">
       <button class="btn btn-primary" id="cascade-btn">⚡ Simulate Cascade</button>
       <button class="btn btn-secondary" id="evac-btn">⟶ Show Evacuation Routes</button>
+      <button class="btn btn-secondary" id="park-btn">⬡ Nearest Open Space</button>
     </div>
 
   </aside>
@@ -115,8 +116,18 @@
         <span style="color:var(--brand); animation:pulse-icon 1s infinite;">●</span>
         CASCADE SIMULATION
       </div>
+      <div class="ci-source" id="ci-source" style="font-family:var(--font-mono);font-size:9px;color:var(--text-muted);margin-bottom:8px;letter-spacing:0.06em;">SOURCE: —</div>
       <div class="ci-wave" id="cascade-wave"></div>
       <div id="cascade-rows"></div>
+    </div>
+
+    <!-- Park route panel -->
+    <div class="park-info map-overlay" id="park-info">
+      <div class="ci-title">
+        <span style="color:var(--accent);">⬡</span>
+        NEAREST OPEN SPACE
+      </div>
+      <div id="park-rows"></div>
     </div>
 
     <!-- Ward detail panel -->
@@ -164,6 +175,7 @@
 <script src="map.js"></script>
 <script src="ui.js"></script>
 <script src="simulation.js"></script>
+<script src="evac.js"></script>
 <script src="app.js"></script>
 
 </body>

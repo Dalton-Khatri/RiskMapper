@@ -29,20 +29,30 @@ window.addEventListener('load', () => {
 });
 
 function bindEvents() {
+  // Cascade button — uses activeWard if one is selected, else top ward
   document.getElementById('cascade-btn').addEventListener('click', () => {
     if (cascadeMode) clearCascade();
-    else simulateCascade();
+    else simulateCascade(activeWard || RISK_DATA.wards[0].ward);
   });
 
+  // Evac routes button
   document.getElementById('evac-btn').addEventListener('click', () => {
     if (evacuMode) clearEvac();
     else showEvacRoutes();
   });
 
+  // Park / nearest open space button
+  document.getElementById('park-btn').addEventListener('click', () => {
+    if (parkMode) clearPark();
+    else findNearestPark();
+  });
+
+  // Ward search filter
   document.getElementById('ward-search').addEventListener('input', e => {
     buildWardList(e.target.value);
   });
 
+  // Ward detail close button
   document.getElementById('wd-close').addEventListener('click', () => {
     document.getElementById('ward-detail').classList.add('hidden');
     activeWard = null;
