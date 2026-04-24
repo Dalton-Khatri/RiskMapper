@@ -829,7 +829,7 @@ aside {
 .realtime-stats {
   position: absolute;
   bottom: 14px;
-  right: 14px;
+  left: 280px;
   width: 210px;
   background: var(--surface);
   border: 1px solid var(--border);
@@ -1121,4 +1121,45 @@ aside {
   letter-spacing: 0.08em;
   padding: 4px 0;
   animation: blink 1.4s infinite;
+}
+
+/* ══════════════════════════════════════
+   EVACUATION ROUTE STYLES
+══════════════════════════════════════ */
+
+/* Evac mode: change cascade panel border to blue */
+.cascade-info.evac-mode {
+  border-color: rgba(29, 110, 245, 0.30);
+}
+
+/* Pulsing ring around danger zone source */
+.evac-pulse-ring {
+  animation: evac-ring-pulse 2s ease-out infinite;
+}
+
+@keyframes evac-ring-pulse {
+  0%   { stroke-opacity: 0.4; stroke-width: 2; }
+  50%  { stroke-opacity: 0.1; stroke-width: 4; }
+  100% { stroke-opacity: 0.4; stroke-width: 2; }
+}
+
+/* Destination label tooltip (permanent, green) */
+.evac-dest-label {
+  background: rgba(255,255,255,0.95) !important;
+  border: 1.5px solid rgba(22,163,74,0.35) !important;
+  border-radius: 6px !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12) !important;
+  padding: 4px 8px !important;
+  font-family: var(--font-mono) !important;
+  font-size: 9px !important;
+}
+.evac-dest-label::before {
+  border-top-color: rgba(22,163,74,0.35) !important;
+}
+
+/* Route card in the evac panel */
+.evac-route-card:last-child {
+  border-bottom: none !important;
+  margin-bottom: 6px !important;
+  padding-bottom: 0 !important;
 }

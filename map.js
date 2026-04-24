@@ -39,11 +39,18 @@ function renderGeoJSON(geojson) {
       const wardNo = feature.properties.ward_no;
       const w = wardMap[wardNo];
       const color = w ? LEVEL_COLORS[w.level] : '#ccc';
+      // Critical wards get bold opacity so they're unmistakably red
+      let fillOp = 0.2;
+      if (w) {
+        if (w.level === 'critical') fillOp = 0.72 + (w.score / 10) * 0.15;
+        else if (w.level === 'high') fillOp = 0.45 + (w.score / 10) * 0.25;
+        else fillOp = 0.35 + (w.score / 10) * 0.25;
+      }
       return {
         fillColor: color,
-        color: '#fff',
-        weight: 1.5,
-        fillOpacity: w ? (0.35 + (w.score / 10) * 0.3) : 0.2,
+        color: w && w.level === 'critical' ? color : '#fff',
+        weight: w && w.level === 'critical' ? 2.5 : 1.5,
+        fillOpacity: fillOp,
         opacity: 0.9,
       };
     },
@@ -63,7 +70,14 @@ function renderGeoJSON(geojson) {
       });
       layer.on('mouseout', function() {
         if (activeWard !== wardNo) {
-          this.setStyle({ weight: 1.5, color: '#fff', fillOpacity: 0.35 + (w.score/10)*0.3 });
+          let fillOp = w.level === 'critical' ? 0.72 + (w.score/10)*0.15
+            : w.level === 'high' ? 0.45 + (w.score/10)*0.25
+            : 0.35 + (w.score/10)*0.25;
+          this.setStyle({
+            weight: w.level === 'critical' ? 2.5 : 1.5,
+            color: w.level === 'critical' ? LEVEL_COLORS[w.level] : '#fff',
+            fillOpacity: fillOp
+          });
         }
       });
       layer.on('click', () => {
@@ -124,7 +138,17 @@ function resetPolygonStyles() {
   geoJsonLayer.eachLayer(layer => {
     const wardNo = layer.feature?.properties?.ward_no;
     const w = wardMap[wardNo];
-    if (w) layer.setStyle({ fillColor: LEVEL_COLORS[w.level], color: '#fff', weight: 1.5, fillOpacity: 0.35+(w.score/10)*0.3 });
+    if (w) {
+      let fillOp = w.level === 'critical' ? 0.72 + (w.score/10)*0.15
+        : w.level === 'high' ? 0.45 + (w.score/10)*0.25
+        : 0.35 + (w.score/10)*0.25;
+      layer.setStyle({
+        fillColor: LEVEL_COLORS[w.level],
+        color: w.level === 'critical' ? LEVEL_COLORS[w.level] : '#fff',
+        weight: w.level === 'critical' ? 2.5 : 1.5,
+        fillOpacity: fillOp
+      });
+    }
   });
 }
 
