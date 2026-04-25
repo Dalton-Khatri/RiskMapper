@@ -41,6 +41,9 @@
 let parkMode = false;
 let parkMarkers = [];        // all Leaflet layers added in this mode
 let userLocationMarker = null;
+let lastRankedResults = [];   // stored so alternatives can be selected
+let lastUserLat = null;
+let lastUserLng = null;
 
 const OSRM_BASE = 'https://router.project-osrm.org/route/v1/foot';
 const OSRM_TIMEOUT_MS = 9000;
@@ -298,13 +301,14 @@ function buildDirectionsHTML(steps) {
     </div>`;
 }
 
-function buildAlternativesHTML(others) {
+function buildAlternativesHTML(others, allRanked) {
   if (!others.length) return '';
   return `
-    <div class="route-section-label" style="margin-top:12px;">ALTERNATIVES</div>
+    <div class="route-section-label" style="margin-top:12px;">ALTERNATIVES · click to route</div>
     ${others.map(r => {
       const rl = corridorRiskLabel(r.avgRisk);
-      return `<div class="route-alt">
+      const idx = allRanked.indexOf(r);
+      return `<div class="route-alt route-alt-selectable" data-alt-index="${idx}">
         <div class="route-alt-name">${r.park.name}</div>
         <div class="route-alt-meta">
           <span>${r.distKm.toFixed(2)} km</span>
@@ -385,82 +389,115 @@ async function findNearestPark() {
     const ranked = await rankCandidates(userLat, userLng, parks);
     if (!ranked.length) throw new Error('Could not compute any routes.');
 
+    // Store for alternative selection
+    lastRankedResults = ranked;
+    lastUserLat = userLat;
+    lastUserLng = userLng;
+
     const best = ranked[0];
 
-    // ── 4. Draw route on map ───────────────────────────────────────────────
-    drawRouteOnMap(userLat, userLng, best);
-
-    // Destination pin (green)
-    const destPin = L.circleMarker([best.park.lat, best.park.lng], {
-      radius: 13, fillColor: '#16a34a', color: '#ffffff', weight: 3, fillOpacity: 0.95,
-    }).addTo(map);
-    destPin.bindTooltip(
-      `<span style="font-family:Space Mono;font-size:10px;color:#16a34a;">
-         <b>${best.park.name}</b><br>Open Space · ${best.distKm.toFixed(2)} km
-       </span>`,
-      { permanent: true, direction: 'top' }
-    );
-    parkMarkers.push(destPin);
-
-    // Rejected alternatives (smaller, dimmed green pins)
-    ranked.slice(1, 6).forEach(r => {
-      const m = L.circleMarker([r.park.lat, r.park.lng], {
-        radius: 6, fillColor: '#4ade80', color: '#ffffff', weight: 1.5, fillOpacity: 0.4,
-      }).addTo(map);
-      m.bindTooltip(
-        `<span style="font-family:Space Mono;font-size:10px;">${r.park.name} · ${r.distKm.toFixed(2)} km</span>`
-      );
-      parkMarkers.push(m);
-    });
-
-    // ── 5. Build info panel ────────────────────────────────────────────────
-    const rl      = corridorRiskLabel(best.avgRisk);
-    const etaMins = best.route
-      ? Math.ceil(best.route.duration / 60)
-      : Math.ceil(best.distKm / 4.5 * 60); // ~4.5 km/h walking
-    const steps = best.route?.legs?.[0]?.steps || [];
-    const routedCount = ranked.filter(r => r.osrmOk).length;
-
-    parkRowsEl.innerHTML = `
-      <div class="route-dest">
-        <div class="route-dest-name">${best.park.name}</div>
-        <div class="route-dest-type">${best.park.type.toUpperCase().replace(/_/g, ' ')}</div>
-      </div>
-
-      <div class="route-meta-grid">
-        <div class="route-meta-cell">
-          <div class="rmc-val">${best.distKm.toFixed(2)}<span class="rmc-unit">km</span></div>
-          <div class="rmc-label">DISTANCE</div>
-        </div>
-        <div class="route-meta-cell">
-          <div class="rmc-val">~${etaMins}<span class="rmc-unit">min</span></div>
-          <div class="rmc-label">ON FOOT</div>
-        </div>
-        <div class="route-meta-cell">
-          <div class="rmc-val" style="color:${rl.color}">${best.safetyScore}<span class="rmc-unit">%</span></div>
-          <div class="rmc-label">SAFETY</div>
-        </div>
-      </div>
-
-      <div class="route-risk-pill" style="--pill-color:${rl.color};">
-        <span class="pill-dot" style="background:${rl.color};"></span>
-        ${rl.text} &nbsp;·&nbsp; avg corridor risk ${best.avgRisk.toFixed(1)}/10
-      </div>
-
-      <div class="route-algo-note">
-        ⚙ composite = 0.85×distance + 0.15×ward-risk
-        &nbsp;·&nbsp; ${parks.length} spaces &nbsp;·&nbsp; ${routedCount} road-routed
-      </div>
-
-      ${buildDirectionsHTML(steps)}
-      ${buildAlternativesHTML(ranked.slice(1, 5))}
-    `;
+    // ── 4. Draw route + pins + panel ───────────────────────────────────────
+    showSelectedRoute(best, ranked, parks.length);
 
   } catch (err) {
     parkRowsEl.innerHTML = `<div class="route-status" style="color:var(--brand);">⚠ ${err.message}</div>`;
   }
 
   finishParkSearch(btn);
+}
+
+// ─── Display a chosen route (used by initial pick AND alternative clicks) ──
+function showSelectedRoute(chosen, allRanked, totalSpaces) {
+  const parkRowsEl = document.getElementById('park-rows');
+  const userLat = lastUserLat;
+  const userLng = lastUserLng;
+
+  // Clear previous route lines and pins (keep user location marker)
+  parkMarkers.forEach(m => {
+    if (m !== userLocationMarker) { try { m.remove(); } catch {} }
+  });
+  parkMarkers = parkMarkers.filter(m => m === userLocationMarker);
+
+  // Draw route to chosen destination
+  drawRouteOnMap(userLat, userLng, chosen);
+
+  // Destination pin (green)
+  const destPin = L.circleMarker([chosen.park.lat, chosen.park.lng], {
+    radius: 13, fillColor: '#16a34a', color: '#ffffff', weight: 3, fillOpacity: 0.95,
+  }).addTo(map);
+  destPin.bindTooltip(
+    `<span style="font-family:Space Mono;font-size:10px;color:#16a34a;">
+       <b>${chosen.park.name}</b><br>Open Space · ${chosen.distKm.toFixed(2)} km
+     </span>`,
+    { permanent: true, direction: 'top' }
+  );
+  parkMarkers.push(destPin);
+
+  // Other alternatives (smaller, dimmed green pins)
+  const others = allRanked.filter(r => r !== chosen).slice(0, 5);
+  others.forEach(r => {
+    const m = L.circleMarker([r.park.lat, r.park.lng], {
+      radius: 6, fillColor: '#4ade80', color: '#ffffff', weight: 1.5, fillOpacity: 0.4,
+    }).addTo(map);
+    m.bindTooltip(
+      `<span style="font-family:Space Mono;font-size:10px;">${r.park.name} · ${r.distKm.toFixed(2)} km</span>`
+    );
+    parkMarkers.push(m);
+  });
+
+  // ── Build info panel ──────────────────────────────────────────────────
+  const rl      = corridorRiskLabel(chosen.avgRisk);
+  const etaMins = chosen.route
+    ? Math.ceil(chosen.route.duration / 60)
+    : Math.ceil(chosen.distKm / 4.5 * 60);
+  const steps   = chosen.route?.legs?.[0]?.steps || [];
+  const routedCount = allRanked.filter(r => r.osrmOk).length;
+  const altList = allRanked.filter(r => r !== chosen).slice(0, 4);
+
+  parkRowsEl.innerHTML = `
+    <div class="route-dest">
+      <div class="route-dest-name">${chosen.park.name}</div>
+      <div class="route-dest-type">${chosen.park.type.toUpperCase().replace(/_/g, ' ')}</div>
+    </div>
+
+    <div class="route-meta-grid">
+      <div class="route-meta-cell">
+        <div class="rmc-val">${chosen.distKm.toFixed(2)}<span class="rmc-unit">km</span></div>
+        <div class="rmc-label">DISTANCE</div>
+      </div>
+      <div class="route-meta-cell">
+        <div class="rmc-val">~${etaMins}<span class="rmc-unit">min</span></div>
+        <div class="rmc-label">ON FOOT</div>
+      </div>
+      <div class="route-meta-cell">
+        <div class="rmc-val" style="color:${rl.color}">${chosen.safetyScore}<span class="rmc-unit">%</span></div>
+        <div class="rmc-label">SAFETY</div>
+      </div>
+    </div>
+
+    <div class="route-risk-pill" style="--pill-color:${rl.color};">
+      <span class="pill-dot" style="background:${rl.color};"></span>
+      ${rl.text} &nbsp;·&nbsp; avg corridor risk ${chosen.avgRisk.toFixed(1)}/10
+    </div>
+
+    <div class="route-algo-note">
+      ⚙ composite = 0.85×distance + 0.15×ward-risk
+      &nbsp;·&nbsp; ${totalSpaces} spaces &nbsp;·&nbsp; ${routedCount} road-routed
+    </div>
+
+    ${buildDirectionsHTML(steps)}
+    ${buildAlternativesHTML(altList, allRanked)}
+  `;
+
+  // Attach click handlers to alternative items
+  document.querySelectorAll('.route-alt-selectable').forEach(el => {
+    el.addEventListener('click', () => {
+      const idx = parseInt(el.dataset.altIndex, 10);
+      if (!isNaN(idx) && lastRankedResults[idx]) {
+        showSelectedRoute(lastRankedResults[idx], lastRankedResults, totalSpaces);
+      }
+    });
+  });
 }
 
 function finishParkSearch(btn) {
@@ -477,6 +514,9 @@ function clearPark() {
   parkMarkers = [];
   if (userLocationMarker) { try { userLocationMarker.remove(); } catch {} userLocationMarker = null; }
   parkMode = false;
+  lastRankedResults = [];
+  lastUserLat = null;
+  lastUserLng = null;
   document.getElementById('park-info').classList.remove('visible');
   const btn = document.getElementById('park-btn');
   btn.textContent  = '⬡ Nearest Open Space';

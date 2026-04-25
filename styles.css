@@ -1096,6 +1096,21 @@ aside {
   background: var(--surface2);
 }
 .route-alt:last-child { margin-bottom: 0; }
+.route-alt-selectable {
+  cursor: pointer;
+  transition: all 0.18s ease;
+  border-left: 3px solid transparent;
+}
+.route-alt-selectable:hover {
+  background: var(--accent-dim);
+  border-color: var(--accent);
+  border-left-color: var(--accent);
+  transform: translateX(2px);
+}
+.route-alt-selectable:active {
+  transform: translateX(0);
+  background: rgba(0,184,122,0.18);
+}
 .route-alt-name {
   font-size: 11px;
   font-weight: 600;
