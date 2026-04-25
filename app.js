@@ -31,6 +31,34 @@ window.addEventListener('load', () => {
     const loader = document.getElementById('loading');
     loader.style.opacity = '0';
     setTimeout(() => loader.style.display = 'none', 400);
+
+    // ── EARTHQUAKE NOTIFICATION HANDLER ──────────────────────────────
+    // When a push notification is clicked, the service worker opens:
+    //   /index.html?action=evacuate&lat=27.71&lng=85.33&mag=6.5&place=...
+    // We detect that here and auto-trigger the evacuation flow.
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('action') === 'evacuate') {
+      console.log('🚨 Earthquake notification triggered — auto-evacuating');
+
+      // Show dramatic earthquake alert overlay
+      if (typeof showEarthquakeAlertOverlay === 'function') {
+        showEarthquakeAlertOverlay(params);
+      }
+
+      // Wait for map tiles to fully load, then trigger evacuation routing
+      // Uses the EXISTING showEvacRoutes() function from simulation.js
+      setTimeout(() => {
+        if (typeof showEvacRoutes === 'function') {
+          showEvacRoutes();
+        } else if (typeof findNearestPark === 'function') {
+          // Fallback to open space finder
+          findNearestPark();
+        }
+      }, 2000);
+
+      // Clean URL params so refresh doesn't re-trigger
+      window.history.replaceState({}, '', window.location.pathname);
+    }
   }, 900);
 });
 
@@ -125,3 +153,25 @@ function makeDraggable(panel, handleSelector) {
     handle.style.cursor = 'grab';
   });
 }
+
+/* ── MOBILE SIDEBAR TOGGLE ──
+   Hamburger button opens/closes the sidebar as a drawer on mobile.
+   The overlay backdrop closes it when tapped. */
+function toggleSidebar() {
+  const aside = document.querySelector('aside');
+  const btn = document.getElementById('hamburger-btn');
+  const overlay = document.getElementById('sidebar-overlay');
+  const isOpen = aside.classList.toggle('open');
+  btn.classList.toggle('open', isOpen);
+  overlay.classList.toggle('visible', isOpen);
+}
+
+// Auto-close sidebar when any action button is clicked (mobile UX)
+document.addEventListener('click', (e) => {
+  if (e.target.closest('.sidebar-actions .btn')) {
+    const aside = document.querySelector('aside');
+    if (aside.classList.contains('open')) {
+      toggleSidebar();
+    }
+  }
+});

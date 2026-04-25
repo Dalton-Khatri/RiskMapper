@@ -1178,3 +1178,562 @@ aside {
   margin-bottom: 6px !important;
   padding-bottom: 0 !important;
 }
+
+/* ══════════════════════════════════════
+   EARTHQUAKE NOTIFICATION SYSTEM STYLES
+══════════════════════════════════════ */
+
+/* ── Sidebar divider between existing buttons and alert buttons ── */
+.sidebar-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 4px 0;
+}
+
+/* ── Enable Alerts button (amber/gold accent) ── */
+.btn-alert {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: #fff;
+  border: none;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-alert::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, transparent, rgba(255,255,255,0.15));
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.btn-alert:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.4);
+}
+
+.btn-alert:hover::before { opacity: 1; }
+
+.btn-alert:disabled {
+  background: var(--surface3);
+  color: var(--text-muted);
+  box-shadow: none;
+  cursor: default;
+  transform: none;
+}
+
+/* ── Demo Earthquake button (pulsing red, dramatic) ── */
+.btn-demo {
+  background: var(--surface);
+  color: var(--brand);
+  border: 1.5px solid var(--brand);
+}
+
+.btn-demo:hover:not(:disabled) {
+  background: var(--brand);
+  color: #fff;
+  box-shadow: 0 2px 12px rgba(224, 32, 32, 0.35);
+  transform: translateY(-1px);
+}
+
+.btn-demo:disabled {
+  color: var(--text-muted);
+  border-color: var(--border);
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* ── In-app toast notification ── */
+.notif-toast {
+  position: fixed;
+  top: 18px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-120%);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 20px;
+  border-radius: var(--radius-lg);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 500;
+  box-shadow: var(--shadow-lg);
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  max-width: 460px;
+  pointer-events: auto;
+}
+
+.notif-toast.visible {
+  transform: translateX(-50%) translateY(0);
+}
+
+.notif-toast-success {
+  background: #ecfdf5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+}
+
+.notif-toast-error {
+  background: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+.notif-toast-info {
+  background: #eff6ff;
+  color: #1e40af;
+  border: 1px solid #bfdbfe;
+}
+
+.notif-toast-icon {
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.notif-toast-text {
+  line-height: 1.4;
+}
+
+/* ── Earthquake Alert Overlay ── */
+/* Dramatic full-screen overlay shown when app opens from notification click */
+.eq-alert-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+
+.eq-alert-overlay.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.eq-alert-content {
+  text-align: center;
+  animation: eq-shake 0.5s ease-in-out;
+}
+
+@keyframes eq-shake {
+  0%, 100% { transform: translateX(0); }
+  10%  { transform: translateX(-8px) rotate(-0.5deg); }
+  20%  { transform: translateX(8px) rotate(0.5deg); }
+  30%  { transform: translateX(-6px) rotate(-0.3deg); }
+  40%  { transform: translateX(6px) rotate(0.3deg); }
+  50%  { transform: translateX(-4px); }
+  60%  { transform: translateX(4px); }
+  70%  { transform: translateX(-2px); }
+  80%  { transform: translateX(2px); }
+  90%  { transform: translateX(-1px); }
+}
+
+.eq-alert-icon {
+  font-size: 64px;
+  margin-bottom: 16px;
+  animation: eq-icon-pulse 0.8s ease-in-out infinite;
+}
+
+@keyframes eq-icon-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+}
+
+.eq-alert-title {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  color: #fca5a5;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.eq-alert-mag {
+  font-family: var(--font-mono);
+  font-size: 72px;
+  font-weight: 700;
+  color: #ef4444;
+  line-height: 1;
+  margin-bottom: 8px;
+  text-shadow: 0 0 30px rgba(239, 68, 68, 0.6);
+}
+
+.eq-alert-place {
+  font-family: var(--font-sans);
+  font-size: 16px;
+  color: #d1d5db;
+  margin-bottom: 20px;
+}
+
+.eq-alert-subtitle {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: #9ca3af;
+  letter-spacing: 0.14em;
+  animation: blink 1.2s infinite;
+}
+
+.eq-alert-pulse {
+  width: 80px;
+  height: 3px;
+  background: linear-gradient(to right, #ef4444, transparent);
+  margin: 16px auto 0;
+  border-radius: 2px;
+  animation: wave-expand 1.5s infinite;
+}
+
+/* ══════════════════════════════════════
+   HAMBURGER MENU (mobile only)
+══════════════════════════════════════ */
+.hamburger-btn {
+  display: none; /* hidden on desktop */
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  z-index: 1100;
+  width: 40px; height: 40px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px;
+}
+.hamburger-btn span {
+  display: block;
+  width: 100%; height: 2px;
+  background: var(--text-dim);
+  border-radius: 1px;
+  transition: all 0.3s;
+}
+.hamburger-btn.open span:nth-child(1) { transform: rotate(45deg) translateY(6px); }
+.hamburger-btn.open span:nth-child(2) { opacity: 0; }
+.hamburger-btn.open span:nth-child(3) { transform: rotate(-45deg) translateY(-6px); }
+
+/* Sidebar overlay backdrop (mobile only) */
+.sidebar-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 999;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.sidebar-overlay.visible {
+  display: block;
+  opacity: 1;
+}
+/* ══════════════════════════════════════
+   NOTIFICATION BUTTONS (sidebar)
+══════════════════════════════════════ */
+.sidebar-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 4px 0;
+}
+
+.btn-alert {
+  background: linear-gradient(135deg, #e02020, #ff4444);
+  color: #fff;
+  font-weight: 700;
+  box-shadow: 0 2px 10px rgba(224, 32, 32, 0.3);
+  transition: all 0.25s;
+}
+.btn-alert:hover {
+  background: linear-gradient(135deg, #b81818, #e02020);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(224, 32, 32, 0.4);
+}
+.btn-alert:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-demo {
+  background: var(--surface);
+  color: #f59e0b;
+  border: 2px solid #f59e0b;
+  font-weight: 700;
+  transition: all 0.25s;
+}
+.btn-demo:hover:not(:disabled) {
+  background: rgba(245, 158, 11, 0.08);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.25);
+}
+.btn-demo:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ══════════════════════════════════════
+   NOTIFICATION TOAST (in-app feedback)
+══════════════════════════════════════ */
+.notif-toast {
+  position: fixed;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-120%);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 20px;
+  border-radius: var(--radius-lg);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.03em;
+  line-height: 1.5;
+  max-width: 520px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18), 0 2px 8px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(12px);
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  pointer-events: auto;
+}
+.notif-toast.visible {
+  transform: translateX(-50%) translateY(0);
+}
+.notif-toast-icon {
+  font-size: 16px;
+  flex-shrink: 0;
+}
+.notif-toast-text {
+  flex: 1;
+}
+
+.notif-toast-success {
+  background: rgba(22, 163, 74, 0.95);
+  color: #fff;
+  border: 1px solid rgba(22, 163, 74, 0.6);
+}
+.notif-toast-error {
+  background: rgba(220, 38, 38, 0.95);
+  color: #fff;
+  border: 1px solid rgba(220, 38, 38, 0.6);
+}
+.notif-toast-info {
+  background: rgba(29, 110, 245, 0.95);
+  color: #fff;
+  border: 1px solid rgba(29, 110, 245, 0.6);
+}
+
+/* ══════════════════════════════════════
+   EARTHQUAKE ALERT OVERLAY
+   Fullscreen dramatic overlay shown when
+   a push notification triggers evacuation
+══════════════════════════════════════ */
+.eq-alert-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  background: rgba(10, 10, 10, 0.92);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  pointer-events: all;
+}
+.eq-alert-overlay.visible {
+  opacity: 1;
+}
+
+.eq-alert-content {
+  text-align: center;
+  color: #fff;
+  animation: eq-shake 0.4s ease-in-out 3;
+}
+
+.eq-alert-icon {
+  font-size: 64px;
+  margin-bottom: 12px;
+  animation: eq-pulse 0.6s infinite alternate;
+}
+
+.eq-alert-title {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  letter-spacing: 0.3em;
+  color: #ff4444;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  font-weight: 700;
+}
+
+.eq-alert-mag {
+  font-family: var(--font-mono);
+  font-size: 72px;
+  font-weight: 700;
+  color: #ff4444;
+  text-shadow: 0 0 40px rgba(255, 68, 68, 0.6), 0 0 80px rgba(255, 68, 68, 0.3);
+  line-height: 1;
+  margin-bottom: 12px;
+}
+
+.eq-alert-place {
+  font-family: var(--font-sans);
+  font-size: 18px;
+  color: rgba(255, 255, 255, 0.85);
+  margin-bottom: 20px;
+}
+
+.eq-alert-subtitle {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.15em;
+  color: rgba(255, 255, 255, 0.5);
+  animation: blink 1s infinite;
+}
+
+.eq-alert-pulse {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 68, 68, 0.4);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  animation: eq-ring 1.5s ease-out infinite;
+  pointer-events: none;
+}
+
+@keyframes eq-shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-8px); }
+  75% { transform: translateX(8px); }
+}
+
+@keyframes eq-pulse {
+  from { transform: scale(1); }
+  to { transform: scale(1.15); }
+}
+
+@keyframes eq-ring {
+  0% { width: 80px; height: 80px; opacity: 0.8; border-width: 3px; }
+  100% { width: 300px; height: 300px; opacity: 0; border-width: 1px; }
+}
+
+/* Evac pulse ring animation on map markers */
+.evac-pulse-ring {
+  animation: evac-ring-pulse 2s ease-out infinite;
+}
+@keyframes evac-ring-pulse {
+  0% { stroke-opacity: 0.5; }
+  100% { stroke-opacity: 0; }
+}
+
+/* ══════════════════════════════════════
+   RESPONSIVE — MOBILE (<768px)
+══════════════════════════════════════ */
+@media (max-width: 768px) {
+  /* Show hamburger */
+  .hamburger-btn { display: flex; }
+
+  /* Header: compact */
+  header {
+    height: 46px;
+    padding: 0 12px 0 56px; /* room for hamburger */
+  }
+  .logo-text { font-size: 11px; }
+  .header-stats { display: none; }
+  .live-badge { font-size: 8px; }
+
+  /* Sidebar: slide-out drawer */
+  aside {
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    width: 280px;
+    z-index: 1000;
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: none;
+  }
+  aside.open {
+    transform: translateX(0);
+    box-shadow: 4px 0 24px rgba(0,0,0,0.18);
+  }
+
+  /* Map: full width */
+  .app-body { display: block; }
+  .map-wrap {
+    width: 100%;
+    height: calc(100vh - 46px);
+  }
+
+  /* Alert banner: compact */
+  .alert-banner { padding: 6px 10px; }
+  .alert-text { font-size: 8px; letter-spacing: 0.04em; }
+
+  /* Formula strip: hide on mobile (too cluttered) */
+  .formula-strip { display: none; }
+
+  /* Ward detail: full-width bottom sheet */
+  .ward-detail {
+    left: 8px; right: 8px; bottom: 8px;
+    width: auto;
+  }
+
+  /* Cascade panel: smaller */
+  .cascade-info {
+    top: auto; bottom: 8px; right: 8px;
+    width: 190px;
+    padding: 10px;
+  }
+
+  /* Park/Route panel: full-width top */
+  .park-info {
+    top: 8px; right: 8px; left: 8px;
+    width: auto;
+    max-height: 50vh;
+  }
+
+  /* Real-time stats: compact bottom-left */
+  .realtime-stats {
+    left: 8px; bottom: 8px;
+    width: 160px;
+    padding: 10px;
+  }
+  .rts-title { font-size: 8px; }
+  .rts-label { font-size: 9px; }
+  .rts-val { font-size: 12px; }
+
+  /* Toast: full-width */
+  .notif-toast {
+    left: 10px; right: 10px;
+    transform: translateX(0) translateY(-120%);
+    max-width: none;
+  }
+  .notif-toast.visible {
+    transform: translateX(0) translateY(0);
+  }
+
+  /* Earthquake alert overlay: smaller text */
+  .eq-alert-mag { font-size: 52px; }
+  .eq-alert-title { font-size: 12px; }
+  .eq-alert-place { font-size: 14px; }
+
+  /* Buttons: touch-friendly */
+  .btn { padding: 13px; font-size: 12px; }
+}
+
+/* ── Extra small screens (<480px) ── */
+@media (max-width: 480px) {
+  .realtime-stats { display: none; }
+  .cascade-info { width: 160px; font-size: 10px; }
+  .park-info { max-height: 40vh; }
+  .eq-alert-mag { font-size: 44px; }
+}

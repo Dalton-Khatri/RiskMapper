@@ -3,7 +3,11 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="theme-color" content="#e02020"/>
   <title>RiskMapper Nepal — Kathmandu Seismic Risk</title>
+
+  <!-- PWA Manifest (required for push notifications) -->
+  <link rel="manifest" href="manifest.json"/>
 
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
@@ -18,6 +22,12 @@
   <link rel="stylesheet" href="styles.css"/>
 </head>
 <body>
+
+<!-- ── HAMBURGER MENU (mobile only, hidden on desktop via CSS) ── -->
+<button class="hamburger-btn" id="hamburger-btn" onclick="toggleSidebar()">
+  <span></span><span></span><span></span>
+</button>
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
 
 <!-- ── LOADING SCREEN ── -->
 <div id="loading">
@@ -89,6 +99,15 @@
       <button class="btn btn-primary" id="cascade-btn">⚡ Simulate Cascade</button>
       <button class="btn btn-secondary" id="evac-btn">⟶ Evacuate to Safe Zone</button>
       <button class="btn btn-secondary" id="park-btn">⬡ Nearest Open Space</button>
+
+      <!-- ── EARTHQUAKE ALERT BUTTONS (new) ── -->
+      <div class="sidebar-divider"></div>
+      <button class="btn btn-alert" id="enable-alerts-btn" onclick="initNotifications()">
+        🔔 ENABLE ALERTS
+      </button>
+      <button class="btn btn-demo" id="demo-earthquake-btn" onclick="triggerDemoEarthquake()" disabled>
+        ⚡ DEMO EARTHQUAKE
+      </button>
     </div>
 
   </aside>
@@ -173,6 +192,7 @@
 <script src="ui.js"></script>
 <script src="simulation.js"></script>
 <script src="evac.js"></script>
+<script src="notification.js"></script>
 <script src="app.js"></script>
 
 </body>
