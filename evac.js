@@ -14,8 +14,8 @@
    5. Sample ward risk every ~50 m along each route:
         avgRisk = mean(wardMap[nearestWard(pt)].score)
    6. Composite score (lower = better):
-        composite = 0.40 × norm(distKm)
-                  + 0.60 × norm(avgRisk)
+        composite = 0.85 × norm(distKm)
+                  + 0.15 × norm(avgRisk)
       where norm() rescales each metric to 0–1
       across all candidates so the two terms are
       on the same scale before weighting.
@@ -93,13 +93,14 @@ async function fetchNearbyParks(lat, lng, radiusMeters = 3000) {
   const q = `
     [out:json][timeout:12];
     (
-      node["leisure"="park"](around:${radiusMeters},${lat},${lng});
-      way["leisure"="park"](around:${radiusMeters},${lat},${lng});
-      node["leisure"="garden"](around:${radiusMeters},${lat},${lng});
-      way["landuse"="recreation_ground"](around:${radiusMeters},${lat},${lng});
-      way["leisure"="playground"](around:${radiusMeters},${lat},${lng});
-      way["landuse"="grass"](around:${radiusMeters},${lat},${lng});
-      way["landuse"="meadow"](around:${radiusMeters},${lat},${lng});
+      nwr["leisure"="park"](around:${radiusMeters},${lat},${lng});
+      nwr["leisure"="garden"](around:${radiusMeters},${lat},${lng});
+      nwr["landuse"="recreation_ground"](around:${radiusMeters},${lat},${lng});
+      nwr["leisure"="playground"](around:${radiusMeters},${lat},${lng});
+      nwr["landuse"="grass"](around:${radiusMeters},${lat},${lng});
+      nwr["landuse"="meadow"](around:${radiusMeters},${lat},${lng});
+      nwr["leisure"="pitch"](around:${radiusMeters},${lat},${lng});
+      nwr["leisure"="sports_centre"](around:${radiusMeters},${lat},${lng});
     );
     out center;
   `;
@@ -120,6 +121,26 @@ async function fetchNearbyParks(lat, lng, radiusMeters = 3000) {
     .filter(p => p.lat && p.lng);
 }
 
+// ─── Deduplicate open spaces (same place as node+way+relation) ─────────────
+// OSM can return the same physical location as a node, way, AND relation.
+// We keep only unique locations (>50 m apart), preferring entries with names.
+function deduplicateSpaces(spaces) {
+  // Sort so named entries come first (preferred when deduplicating)
+  const sorted = [...spaces].sort((a, b) => {
+    const aName = a.name !== 'Open Space' ? 0 : 1;
+    const bName = b.name !== 'Open Space' ? 0 : 1;
+    return aName - bName;
+  });
+  const unique = [];
+  for (const s of sorted) {
+    const dominated = unique.some(u =>
+      haversine(s.lat, s.lng, u.lat, u.lng) < 0.05  // within 50 m
+    );
+    if (!dominated) unique.push(s);
+  }
+  return unique;
+}
+
 // ─── OSRM — fetch actual walking route (road geometry) ─────────────────────
 // Returns: { distance (m), duration (s), geometry: { coordinates: [[lng,lat]…] }, legs }
 async function fetchOSRMRoute(fromLat, fromLng, toLat, toLng) {
@@ -136,10 +157,10 @@ async function fetchOSRMRoute(fromLat, fromLng, toLat, toLng) {
 // ─── Score candidates and rank by composite ────────────────────────────────
 // For each of the top 5 nearest parks (by straight-line) fetch an OSRM route,
 // compute avgRisk along the actual road geometry, then apply:
-//   composite = 0.40 × norm(distKm) + 0.60 × norm(avgRisk)
+//   composite = 0.85 × norm(distKm) + 0.15 × norm(avgRisk)
 // Normalize both metrics across candidates so they're on the same 0–1 scale.
 async function rankCandidates(userLat, userLng, parks) {
-  const pool = parks.slice(0, 5);
+  const pool = parks.slice(0, 8);
   const results = [];
 
   for (const park of pool) {
@@ -166,7 +187,7 @@ async function rankCandidates(userLat, userLng, parks) {
   results.forEach(r => {
     const nd = maxD > minD ? (r.distKm - minD) / (maxD - minD) : 0;
     const nr = maxR > minR ? (r.avgRisk - minR) / (maxR - minR) : 0;
-    r.composite    = 0.40 * nd + 0.60 * nr;   // lower = better
+    r.composite    = 0.85 * nd + 0.15 * nr;   // lower = better
     r.safetyScore  = Math.round((1 - r.composite) * 100);
   });
 
@@ -345,7 +366,7 @@ async function findNearestPark() {
   try {
     // ── 2. Fetch nearby open spaces ────────────────────────────────────────
     setStatus('SCANNING OPEN SPACES (3 km)…');
-    const parks = await fetchNearbyParks(userLat, userLng, 3000);
+    const parks = deduplicateSpaces(await fetchNearbyParks(userLat, userLng, 3000));
 
     if (!parks.length) {
       parkRowsEl.innerHTML = `<div class="route-status">No open spaces found within 3 km.</div>`;
@@ -382,7 +403,7 @@ async function findNearestPark() {
     parkMarkers.push(destPin);
 
     // Rejected alternatives (smaller, dimmed green pins)
-    ranked.slice(1, 4).forEach(r => {
+    ranked.slice(1, 6).forEach(r => {
       const m = L.circleMarker([r.park.lat, r.park.lng], {
         radius: 6, fillColor: '#4ade80', color: '#ffffff', weight: 1.5, fillOpacity: 0.4,
       }).addTo(map);
@@ -427,12 +448,12 @@ async function findNearestPark() {
       </div>
 
       <div class="route-algo-note">
-        ⚙ composite = 0.40×distance + 0.60×ward-risk
+        ⚙ composite = 0.85×distance + 0.15×ward-risk
         &nbsp;·&nbsp; ${parks.length} spaces &nbsp;·&nbsp; ${routedCount} road-routed
       </div>
 
       ${buildDirectionsHTML(steps)}
-      ${buildAlternativesHTML(ranked.slice(1, 3))}
+      ${buildAlternativesHTML(ranked.slice(1, 5))}
     `;
 
   } catch (err) {
