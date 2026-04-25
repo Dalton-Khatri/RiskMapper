@@ -38,8 +38,8 @@ self.addEventListener('push', (event) => {
   const title = data.title || '⚠️ EARTHQUAKE ALERT';
   const options = {
     body: data.body || 'Earthquake detected near your area. Open app for evacuation route.',
-    icon: '/notification-icon.png',          // App icon shown in notification
-    badge: '/notification-icon.png',         // Small icon for Android status bar
+    icon: '/assets/notification-icon.png',          // App icon shown in notification
+    badge: '/assets/notification-icon.png',         // Small icon for Android status bar
     vibrate: [300, 100, 300, 100, 300],      // SOS-style vibration pattern
     requireInteraction: true,                // Don't auto-dismiss — user must tap
     urgency: 'high',                         // Tell push service this is urgent

@@ -169,7 +169,7 @@ output = {
     }
 }
 
-with open("risk_data.json", "w") as f:
+with open("../data/risk_data.json", "w") as f:
     json.dump(output, f, indent=2)
 
 print("\n✓ risk_data.json written")

@@ -1,11 +1,11 @@
 import json
 
-with open('risk_data.json') as f:
+with open('../data/risk_data.json') as f:
     data = json.load(f)
 
 mini = json.dumps(data, separators=(',', ':'))
 
-with open('data.js', 'w') as f:
+with open('../js/data.js', 'w') as f:
     f.write('/* ========================================\n')
     f.write('   RiskMapper Nepal - data.js\n')
     f.write('   REAL DATA: NPC/CBS/KLL 2015 Survey + USGS ShakeMap + Vs30 Soil\n')

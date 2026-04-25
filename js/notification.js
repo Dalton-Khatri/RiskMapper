@@ -340,8 +340,8 @@ async function pollForEarthquake() {
     if (Notification.permission === 'granted') {
       const notif = new Notification(eq.title || '⚠️ EARTHQUAKE ALERT', {
         body: eq.body || `M${eq.magnitude} — ${eq.place}`,
-        icon: '/notification-icon.png',
-        badge: '/notification-icon.png',
+        icon: '/assets/notification-icon.png',
+        badge: '/assets/notification-icon.png',
         tag: 'earthquake-alert',
         renotify: true,
         requireInteraction: true,

@@ -9,7 +9,7 @@
   "orientation": "any",
   "icons": [
     {
-      "src": "/notification-icon.png",
+      "src": "/assets/notification-icon.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"

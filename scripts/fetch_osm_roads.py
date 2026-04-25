@@ -19,7 +19,7 @@ print(f"  Nodes: {G.number_of_nodes()}")
 print(f"  Edges: {G.number_of_edges()}")
 
 # Save full graph for reference
-ox.save_graphml(G, "ktm_roads.graphml")
+ox.save_graphml(G, "../data/ktm_roads.graphml")
 print("  Saved ktm_roads.graphml")
 
 # Convert to simplified JSON for browser use
@@ -103,7 +103,7 @@ output = {
     }
 }
 
-with open("ktm_roads.json", "w") as f:
+with open("../data/ktm_roads.json", "w") as f:
     json.dump(output, f, separators=(",", ":"))
 
 fsize = len(json.dumps(output, separators=(",", ":"))) / 1024 / 1024

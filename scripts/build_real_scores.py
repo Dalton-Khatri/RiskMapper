@@ -9,12 +9,12 @@ from collections import defaultdict
 # ── LOAD DATA ──
 print("Loading DrivenData CSVs...")
 values = {}
-with open("data/train_values.csv") as f:
+with open("../data/train_values.csv") as f:
     for row in csv.DictReader(f):
         values[row["building_id"]] = row
 
 labels = {}
-with open("data/train_labels.csv") as f:
+with open("../data/train_labels.csv") as f:
     for row in csv.DictReader(f):
         labels[row["building_id"]] = int(row["damage_grade"])
 
@@ -337,7 +337,7 @@ output = {
     "stats": stats,
 }
 
-with open("risk_data.json", "w") as f:
+with open("../data/risk_data.json", "w") as f:
     json.dump(output, f, indent=2)
 
 print(f"\n[OK] risk_data.json written with REAL DATA")
